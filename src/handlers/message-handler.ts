@@ -12,43 +12,23 @@ export async function handleMessage(ctx: SessionContext) {
 
   const messageText = ctx.message.text;
 
-  // Start typing indicator immediately when any message is received
-  const typingInterval = startTypingIndicator(ctx);
-
-  try {
-    if (ctx.session.waitingForContractAddress) {
-      await handleContractAddressInput(ctx, messageText);
-      return;
-    }
-
-    if (ctx.session.waitingForChainId) {
-      await handleChainIdInput(ctx, messageText);
-      return;
-    }
-
-    // Handle normal chat message
-    await handleChatMessage(ctx, messageText);
-  } catch (error) {
-    console.error('Error handling message:', error);
-    await ctx.reply('❌ An error occurred while processing your message.');
-  } finally {
-    clearInterval(typingInterval);
+  // Check if we're waiting for specific inputs
+  if (ctx.session.waitingForContractAddress) {
+    await handleContractAddressInput(ctx, messageText);
+    return;
   }
-}
 
-export function startTypingIndicator(ctx: SessionContext): NodeJS.Timeout {
-  ctx
-    .sendChatAction('typing')
-    .catch((err) => console.error('Error sending chat action:', err));
+  if (ctx.session.waitingForChainId) {
+    await handleChainIdInput(ctx, messageText);
+    return;
+  }
 
-  return setInterval(() => {
-    ctx
-      .sendChatAction('typing')
-      .catch((err) => console.error('Error sending chat action:', err));
-  }, 4500);
+  // Handle normal chat message
+  await handleChatMessage(ctx, messageText);
 }
 
 async function handleChatMessage(ctx: SessionContext, messageText: string) {
+  // Check if user is authenticated
   if (!ctx.session.isAuthenticated) {
     await ctx.reply('Please start the bot with /start command first.');
     return;
@@ -68,6 +48,9 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
       return;
     }
   }
+
+  // Show typing indicator
+  await ctx.sendChatAction('typing');
 
   // Send the message to API
   const response = await sendMessage(
@@ -89,8 +72,7 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
 
     // Send the bot response
     await ctx.reply(
-      response.data.botMessage.botMessage || 'No response from the bot.',
-      { parse_mode: 'MarkdownV2' }
+      response.data.botMessage.botMessage || 'No response from the bot.'
     );
   } else {
     await ctx.reply(
