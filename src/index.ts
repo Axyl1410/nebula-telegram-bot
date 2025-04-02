@@ -1,58 +1,73 @@
-import { Context, Markup, Telegraf, Telegram } from 'telegraf';
+import dotenv from 'dotenv';
+import { Context, Telegraf, session } from 'telegraf';
+import { message } from 'telegraf/filters';
 import { Update } from 'telegraf/typings/core/types/typegram';
+import { handleStartCommand } from './handlers/command-handler';
+import { handleContractCommand } from './handlers/contract-handler';
+import { handleMessage } from './handlers/message-handler';
+import { UserSession } from './types';
+import connectToDatabase from './utils/db';
 
-const token: string = process.env.BOT_TOKEN as string;
+// Load environment variables
+dotenv.config();
 
-const telegram: Telegram = new Telegram(token);
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-const bot: Telegraf<Context<Update>> = new Telegraf(token);
+if (!BOT_TOKEN) {
+  console.error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
+  process.exit(1);
+}
+// Create bot instance
+interface MyContext extends Context<Update> {
+  session: UserSession;
+}
+const bot = new Telegraf<MyContext>(BOT_TOKEN);
 
-const chatId: string = process.env.CHAT_ID as string;
+// Initialize session middleware
+bot.use(session());
 
-bot.start((ctx) => {
-  ctx.reply('Hello ' + ctx.from.first_name + '!');
-});
-
-bot.help((ctx) => {
-  ctx.reply('Send /start to receive a greeting');
-  ctx.reply('Send /keyboard to receive a message with a keyboard');
-  ctx.reply('Send /quit to stop the bot');
-});
-
-bot.command('quit', (ctx) => {
-  // Explicit usage
-  ctx.telegram.leaveChat(ctx.message.chat.id);
-
-  // Context shortcut
-  ctx.leaveChat();
-});
-
-bot.command('keyboard', (ctx) => {
-  ctx.reply(
-    'Keyboard',
-    Markup.inlineKeyboard([
-      Markup.button.callback('First option', 'first'),
-      Markup.button.callback('Second option', 'second'),
-    ])
-  );
-});
-
-bot.on('text', (ctx) => {
-  ctx.reply(
-    'You choose the ' +
-      (ctx.message.text === 'first' ? 'First' : 'Second') +
-      ' Option!'
-  );
-
-  if (chatId) {
-    telegram.sendMessage(
-      chatId,
-      'This message was sent without your interaction!'
-    );
+// Initialize session data for new users
+bot.use((ctx, next) => {
+  if (!ctx.session) {
+    ctx.session = {
+      userId: ctx.from?.id.toString() || '',
+      sessionId: '',
+      chainId: '',
+      contractAddress: '',
+      waitingForContractAddress: false,
+      waitingForChainId: false,
+      isAuthenticated: false,
+    };
   }
+  return next();
 });
 
-bot.launch();
+// Connect to MongoDB
+connectToDatabase()
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  });
+
+// Register command handlers
+bot.command('start', handleStartCommand);
+bot.command('contract', handleContractCommand);
+
+// Handle incoming messages
+bot.on(message('text'), handleMessage);
+
+// Start the bot
+bot
+  .launch()
+  .then(() => {
+    console.log('Bot started successfully');
+  })
+  .catch((err) => {
+    console.error('Failed to start bot:', err);
+  });
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
