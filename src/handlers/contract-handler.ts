@@ -1,5 +1,4 @@
 import { SessionContext } from '../types';
-import { startTypingIndicator } from './message-handler'; // Import the typing indicator function
 
 export async function handleContractCommand(ctx: SessionContext) {
   // Check if the user is authenticated
@@ -60,44 +59,32 @@ export async function handleChainIdInput(
       'This may take a moment.'
   );
 
-  // Start typing indicator for the contract analysis
-  const typingInterval = startTypingIndicator(ctx);
+  // Now fetch the contract details
+  const { getContractDetails } = await import('../utils/api');
+  const response = await getContractDetails(
+    ctx.session.userId,
+    ctx.session.sessionId,
+    ctx.session.contractAddress,
+    ctx.session.chainId
+  );
 
-  try {
-    // Now fetch the contract details
-    const { getContractDetails } = await import('../utils/api');
-    const response = await getContractDetails(
-      ctx.session.userId,
-      ctx.session.sessionId,
-      ctx.session.contractAddress,
-      ctx.session.chainId
-    );
-
-    if (response.success && response.data) {
-      // Update session ID if it changed
-      if (
-        response.data.sessionId &&
-        response.data.sessionId !== ctx.session.sessionId
-      ) {
-        ctx.session.sessionId = response.data.sessionId;
-      }
-
-      // Send the contract details
-      await ctx.reply(
-        response.data.botMessage.botMessage || 'Contract details retrieved.',
-        { parse_mode: 'MarkdownV2' }
-      );
-    } else {
-      await ctx.reply(
-        '❌ Failed to fetch contract details.\n' +
-          `Error: ${response.error || 'Unknown error'}`
-      );
+  if (response.success && response.data) {
+    // Update session ID if it changed
+    if (
+      response.data.sessionId &&
+      response.data.sessionId !== ctx.session.sessionId
+    ) {
+      ctx.session.sessionId = response.data.sessionId;
     }
-  } catch (error) {
-    console.error('Error analyzing contract:', error);
-    await ctx.reply('❌ An error occurred while analyzing the contract.');
-  } finally {
-    // Clear typing indicator when done
-    clearInterval(typingInterval);
+
+    // Send the contract details
+    await ctx.reply(
+      response.data.botMessage.botMessage || 'Contract details retrieved.'
+    );
+  } else {
+    await ctx.reply(
+      '❌ Failed to fetch contract details.\n' +
+        `Error: ${response.error || 'Unknown error'}`
+    );
   }
 }
