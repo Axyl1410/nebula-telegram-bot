@@ -4,7 +4,7 @@
   "description": "Telegram Bot with TypeScript, Node.js, and Telegraf and deployment configuration for Heroku",
   "main": "dist/app.js",
   "engines": {
-    "node": "17.0",
+    "node": "22.0",
     "npm": "8.1"
   },
   "scripts": {
@@ -14,16 +14,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pirasalbe/Telegram-Bot_Node.js.git"
+    "url": "git+https://github.com/Axyl1410/nebula-telegram-bot.git"
   },
-  "author": "pirasalbe",
+  "author": "alexsandr senaviev",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/pirasalbe/Telegram-Bot_Node.js/issues"
+    "url": "https://github.com/Axyl1410/nebula-telegram-bot/issues"
   },
-  "homepage": "https://github.com/pirasalbe/Telegram-Bot_Node.js#readme",
+  "homepage": "https://github.com/Axyl1410/nebula-telegram-bot#readme",
   "devDependencies": {
-    "@types/node": "^16.18.126",
+    "@types/node": "^16.11.4",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "eslint": "^8.1.0",
