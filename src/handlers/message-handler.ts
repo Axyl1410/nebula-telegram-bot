@@ -12,7 +12,6 @@ export async function handleMessage(ctx: SessionContext) {
 
   const messageText = ctx.message.text;
 
-  // Check if we're waiting for specific inputs
   if (ctx.session.waitingForContractAddress) {
     await handleContractAddressInput(ctx, messageText);
     return;
@@ -34,6 +33,19 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
     return;
   }
 
+  // Add a rate limiter/debounce mechanism
+  const now = Date.now();
+  const lastMessageTime = ctx.session.lastMessageTime || 0;
+
+  // Prevent messages sent too quickly (1 second minimum)
+  if (now - lastMessageTime < 1000) {
+    await ctx.reply('Please wait a moment before sending another message.');
+    return;
+  }
+
+  // Update last message timestamp
+  ctx.session.lastMessageTime = now;
+
   // If no sessionId, create a new one
   if (!ctx.session.sessionId) {
     const response = await createNewSession(ctx.session.userId);
@@ -52,32 +64,48 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
   // Show typing indicator
   await ctx.sendChatAction('typing');
 
-  // Send the message to API
-  const response = await sendMessage(
-    ctx.session.userId,
-    ctx.session.sessionId,
-    messageText,
-    ctx.session.chainId || undefined,
-    ctx.session.contractAddress || undefined
-  );
+  // Set a processing flag to prevent duplicate requests
+  if (ctx.session.isProcessingMessage) {
+    await ctx.reply('Still processing your previous message, please wait.');
+    return;
+  }
 
-  if (response.success && response.data) {
-    // Update session ID if it changed
-    if (
-      response.data.sessionId &&
-      response.data.sessionId !== ctx.session.sessionId
-    ) {
-      ctx.session.sessionId = response.data.sessionId;
+  try {
+    ctx.session.isProcessingMessage = true;
+
+    // Send the message to API
+    const response = await sendMessage(
+      ctx.session.userId,
+      ctx.session.sessionId,
+      messageText,
+      ctx.session.chainId || undefined,
+      ctx.session.contractAddress || undefined
+    );
+
+    if (response.success && response.data) {
+      // Update session ID if it changed
+      if (
+        response.data.sessionId &&
+        response.data.sessionId !== ctx.session.sessionId
+      ) {
+        ctx.session.sessionId = response.data.sessionId;
+      }
+
+      // Send the bot response
+      await ctx.reply(
+        response.data.botMessage.botMessage || 'No response from the bot.'
+      );
+    } else {
+      await ctx.reply(
+        '❌ Failed to get a response.\n' +
+          `Error: ${response.error || 'Unknown error'}`
+      );
     }
-
-    // Send the bot response
-    await ctx.reply(
-      response.data.botMessage.botMessage || 'No response from the bot.'
-    );
-  } else {
-    await ctx.reply(
-      '❌ Failed to get a response.\n' +
-        `Error: ${response.error || 'Unknown error'}`
-    );
+  } catch (error) {
+    console.error('Error processing message:', error);
+    await ctx.reply('An unexpected error occurred processing your message.');
+  } finally {
+    // Always clear the processing flag when done
+    ctx.session.isProcessingMessage = false;
   }
 }

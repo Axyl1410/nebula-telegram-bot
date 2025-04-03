@@ -8,6 +8,8 @@ export interface UserSession {
   waitingForContractAddress: boolean;
   waitingForChainId: boolean;
   isAuthenticated: boolean;
+  lastMessageTime?: number; // Add this field
+  isProcessingMessage?: boolean; // Add this field
 }
 
 export interface SessionContext extends Context {
