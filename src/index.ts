@@ -7,7 +7,6 @@ import { handleContractCommand } from './handlers/contract-handler';
 import { handleMessage } from './handlers/message-handler';
 import { UserSession } from './types';
 import connectToDatabase from './utils/db';
-import { helpMessage } from './utils/constants';
 
 // Load environment variables
 dotenv.config();
@@ -56,11 +55,6 @@ connectToDatabase()
 // Register command handlers
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
-bot.command('help', (ctx) => {
-  ctx.reply(helpMessage, {
-    parse_mode: 'MarkdownV2',
-  });
-});
 
 // Handle incoming messages
 bot.on(message('text'), handleMessage);
