@@ -14,8 +14,10 @@ When you set a contract context, all subsequent questions will be answered in th
 
 *Note:*
 This bot is in beta. Please report any issues to the developer.
+
 *Disclaimer:*
 This bot is for educational purposes only. Use at your own risk. The developer is not responsible for any losses or damages incurred from using this bot.
+
 *Privacy Policy:*
 Your data is stored securely and used only for the purpose of providing the bot's functionality. We do not share your data with third parties without your consent.
 `;

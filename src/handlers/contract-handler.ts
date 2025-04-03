@@ -1,14 +1,18 @@
 import { SessionContext } from '../types';
+import { escapeMarkdown } from '../utils/helpers';
 
 export async function handleContractCommand(ctx: SessionContext) {
   // Check if the user is authenticated
   if (!ctx.session.isAuthenticated) {
-    await ctx.reply('Please start the bot with /start command first.');
+    await ctx.reply('Please start the bot with /start command first.', {
+      parse_mode: 'Markdown',
+    });
     return;
   }
 
   await ctx.reply(
-    'Please enter the contract address you want to explore (starting with 0x):'
+    'Please enter the contract address you want to explore (starting with 0x):',
+    { parse_mode: 'Markdown' }
   );
 
   ctx.session.waitingForContractAddress = true;
@@ -22,9 +26,10 @@ export async function handleContractAddressInput(
   // Basic validation for Ethereum addresses
   if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
     await ctx.reply(
-      '❌ Invalid Ethereum address format.\n' +
+      '❌ *Invalid Ethereum address format*\n' +
         'Address should start with "0x" followed by 40 hex characters.\n' +
-        'Please try again:'
+        'Please try again:',
+      { parse_mode: 'Markdown' }
     );
     return;
   }
@@ -34,8 +39,11 @@ export async function handleContractAddressInput(
   ctx.session.waitingForChainId = true;
 
   await ctx.reply(
-    '✅ Contract address set.\n\n' +
-      'Please enter the chain ID (e.g., 1 for Ethereum Mainnet, 137 for Polygon):'
+    escapeMarkdown(
+      '✅ *Contract address set*\n\n' +
+        'Please enter the chain ID (e.g., `1` for Ethereum Mainnet, `137` for Polygon):'
+    ),
+    { parse_mode: 'MarkdownV2' }
   );
 }
 
@@ -46,7 +54,9 @@ export async function handleChainIdInput(
   const chainId = parseInt(chainIdText.trim(), 10);
 
   if (isNaN(chainId) || chainId <= 0) {
-    await ctx.reply('❌ Invalid chain ID. Please enter a positive number:');
+    await ctx.reply('❌ *Invalid chain ID*. Please enter a positive number:', {
+      parse_mode: 'MarkdownV2',
+    });
     return;
   }
 
@@ -54,9 +64,12 @@ export async function handleChainIdInput(
   ctx.session.waitingForChainId = false;
 
   await ctx.reply(
-    `✅ Chain ID set to ${chainId}.\n\n` +
-      `Now analyzing contract ${ctx.session.contractAddress} on chain ${chainId}...\n` +
-      'This may take a moment.'
+    escapeMarkdown(
+      `✅ *Chain ID set to ${chainId}*\n\n` +
+        `Now analyzing contract \`${ctx.session.contractAddress}\` on chain ${chainId}...\n` +
+        '_This may take a moment._'
+    ),
+    { parse_mode: 'MarkdownV2' }
   );
 
   await ctx.sendChatAction('typing');
@@ -91,12 +104,18 @@ export async function handleChainIdInput(
 
     // Send the contract details
     await ctx.reply(
-      response.data.botMessage.botMessage || 'Contract details retrieved.'
+      escapeMarkdown(
+        response.data.botMessage.botMessage || '*Contract details retrieved*'
+      ),
+      { parse_mode: 'MarkdownV2' }
     );
   } else {
     await ctx.reply(
-      '❌ Failed to fetch contract details.\n' +
-        `Error: ${response.error || 'Unknown error'}`
+      escapeMarkdown(
+        '❌ *Failed to fetch contract details*\n' +
+          `Error: ${response.error || 'Unknown error'}`
+      ),
+      { parse_mode: 'MarkdownV2' }
     );
   }
 }

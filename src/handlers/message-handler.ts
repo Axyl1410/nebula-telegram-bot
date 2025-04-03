@@ -1,5 +1,6 @@
 import { SessionContext } from '../types';
 import { createNewSession, sendMessage } from '../utils/api';
+import { escapeMarkdown } from '../utils/helpers';
 import {
   handleChainIdInput,
   handleContractAddressInput,
@@ -30,7 +31,9 @@ export async function handleMessage(ctx: SessionContext) {
 async function handleChatMessage(ctx: SessionContext, messageText: string) {
   // Check if user is authenticated
   if (!ctx.session.isAuthenticated) {
-    await ctx.reply('Please start the bot with /start command first.');
+    await ctx.reply('Please start the bot with /start command first.', {
+      parse_mode: 'MarkdownV2',
+    });
     return;
   }
 
@@ -42,8 +45,11 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
         response.data.sessionId || response.data.conversation.sessionId;
     } else {
       await ctx.reply(
-        '❌ Failed to create a new session. Please try /start again.\n' +
-          `Error: ${response.error || 'Unknown error'}`
+        escapeMarkdown(
+          '❌ Failed to create a new session. Please try /start again.\n' +
+            `Error: ${response.error || 'Unknown error'}`
+        ),
+        { parse_mode: 'MarkdownV2' }
       );
       return;
     }
@@ -83,14 +89,17 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
         ctx.session.sessionId = response.data.sessionId;
       }
 
-      // Send the bot response
-      await ctx.reply(
-        response.data.botMessage.botMessage || 'No response from the bot.'
-      );
+      // Send the bot response with MarkdownV2
+      const botMessage =
+        response.data.botMessage.botMessage || 'No response from the bot.';
+      await ctx.reply(escapeMarkdown(botMessage), { parse_mode: 'MarkdownV2' });
     } else {
       await ctx.reply(
-        '❌ Failed to get a response.\n' +
-          `Error: ${response.error || 'Unknown error'}`
+        escapeMarkdown(
+          '❌ Failed to get a response.\n' +
+            `Error: ${response.error || 'Unknown error'}`
+        ),
+        { parse_mode: 'MarkdownV2' }
       );
     }
   } catch (error) {
@@ -98,8 +107,11 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
     clearInterval(typingInterval);
 
     await ctx.reply(
-      '❌ An error occurred while processing your message.\n' +
-        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      escapeMarkdown(
+        '❌ An error occurred while processing your message.\n' +
+          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      ),
+      { parse_mode: 'MarkdownV2' }
     );
   }
 }
