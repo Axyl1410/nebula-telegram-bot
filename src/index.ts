@@ -57,9 +57,7 @@ connectToDatabase()
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
 bot.command('help', (ctx) => {
-  ctx.reply(helpMessage, {
-    parse_mode: 'MarkdownV2',
-  });
+  ctx.reply(helpMessage);
 });
 bot.command('stop', (ctx) => {
   ctx.reply('Stopping the bot...');
