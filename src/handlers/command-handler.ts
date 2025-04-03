@@ -14,8 +14,20 @@ export async function handleStartCommand(ctx: SessionContext) {
     isAuthenticated: true, // Auto-authenticate for simplicity
   };
 
+  await ctx.sendChatAction('typing');
+
+  const typingInterval = setInterval(async () => {
+    try {
+      await ctx.sendChatAction('typing');
+    } catch (error) {
+      console.error('Failed to send typing indicator:', error);
+    }
+  }, 4500);
+
   // Create a new session with the API
   const response = await createNewSession(ctx.session.userId);
+
+  clearInterval(typingInterval);
 
   if (response.success && response.data) {
     ctx.session.sessionId =

@@ -59,6 +59,16 @@ export async function handleChainIdInput(
       'This may take a moment.'
   );
 
+  await ctx.sendChatAction('typing');
+
+  const typingInterval = setInterval(async () => {
+    try {
+      await ctx.sendChatAction('typing');
+    } catch (error) {
+      console.error('Failed to send typing indicator:', error);
+    }
+  }, 4500);
+
   // Now fetch the contract details
   const { getContractDetails } = await import('../utils/api');
   const response = await getContractDetails(
@@ -67,6 +77,8 @@ export async function handleChainIdInput(
     ctx.session.contractAddress,
     ctx.session.chainId
   );
+
+  clearInterval(typingInterval);
 
   if (response.success && response.data) {
     // Update session ID if it changed
