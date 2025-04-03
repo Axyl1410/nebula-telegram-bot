@@ -56,12 +56,13 @@ connectToDatabase()
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
 bot.help((ctx) => {
-  ctx.reply('Send /start - Start or reset the bot');
-  ctx.reply('Send /help - Show this help message');
-  ctx.reply('Send /contract - Set contract context for chain analysis');
-  ctx.reply('Send any text - Chat with the bot');
   ctx.reply(
-    `Contract Analysis: When you set a contract context, all subsequent questions will be answered in the context of that contract.`
+    'Available commands:\n' +
+      '/start - Start or reset the bot\n' +
+      '/help - Show this help message\n' +
+      '/contract - Set contract context for chain analysis\n\n' +
+      'You can also send any text to chat with the bot.\n\n' +
+      'Note: When you set a contract context, all subsequent questions will be answered in relation to that contract.'
   );
 });
 
