@@ -6,8 +6,8 @@ import { handleStartCommand } from './handlers/command-handler';
 import { handleContractCommand } from './handlers/contract-handler';
 import { handleMessage } from './handlers/message-handler';
 import { UserSession } from './types';
-import connectToDatabase from './utils/db';
 import { helpMessage } from './utils/constants';
+import connectToDatabase from './utils/db';
 
 // Load environment variables
 dotenv.config();
@@ -60,6 +60,10 @@ bot.command('help', (ctx) => {
   ctx.reply(helpMessage, {
     parse_mode: 'MarkdownV2',
   });
+});
+bot.command('stop', (ctx) => {
+  ctx.reply('Stopping the bot...');
+  bot.stop();
 });
 
 // Handle incoming messages
