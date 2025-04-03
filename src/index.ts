@@ -6,7 +6,6 @@ import { handleStartCommand } from './handlers/command-handler';
 import { handleContractCommand } from './handlers/contract-handler';
 import { handleMessage } from './handlers/message-handler';
 import { UserSession } from './types';
-import { helpMessage } from './utils/constants';
 import connectToDatabase from './utils/db';
 
 // Load environment variables
@@ -56,13 +55,6 @@ connectToDatabase()
 // Register command handlers
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
-bot.command('help', (ctx) => {
-  ctx.reply(helpMessage);
-});
-bot.command('stop', (ctx) => {
-  ctx.reply('Stopping the bot...');
-  bot.stop();
-});
 
 // Handle incoming messages
 bot.on(message('text'), handleMessage);
