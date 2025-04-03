@@ -6,7 +6,6 @@ import { handleStartCommand } from './handlers/command-handler';
 import { handleContractCommand } from './handlers/contract-handler';
 import { handleMessage } from './handlers/message-handler';
 import { UserSession } from './types';
-import { helpMessage } from './utils/constants';
 import connectToDatabase from './utils/db';
 
 // Load environment variables
@@ -57,7 +56,9 @@ connectToDatabase()
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
 bot.help((ctx) => {
-  ctx.reply(helpMessage);
+  ctx.reply('Send /start - Start or reset the bot');
+  ctx.reply('Send /help - Show this help message');
+  ctx.reply('Send /contract - Set contract context for chain analysis');
 });
 
 // Handle incoming messages
