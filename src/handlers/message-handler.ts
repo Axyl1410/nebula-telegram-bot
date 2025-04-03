@@ -49,35 +49,57 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
     }
   }
 
-  // Show typing indicator
+  // Start typing indicator
   await ctx.sendChatAction('typing');
 
-  // Send the message to API
-  const response = await sendMessage(
-    ctx.session.userId,
-    ctx.session.sessionId,
-    messageText,
-    ctx.session.chainId || undefined,
-    ctx.session.contractAddress || undefined
-  );
-
-  if (response.success && response.data) {
-    // Update session ID if it changed
-    if (
-      response.data.sessionId &&
-      response.data.sessionId !== ctx.session.sessionId
-    ) {
-      ctx.session.sessionId = response.data.sessionId;
+  // Create an interval to show typing indicator every 4.5 seconds
+  const typingInterval = setInterval(async () => {
+    try {
+      await ctx.sendChatAction('typing');
+    } catch (error) {
+      console.error('Failed to send typing indicator:', error);
     }
+  }, 4500);
 
-    // Send the bot response
-    await ctx.reply(
-      response.data.botMessage.botMessage || 'No response from the bot.'
+  try {
+    // Send the message to API
+    const response = await sendMessage(
+      ctx.session.userId,
+      ctx.session.sessionId,
+      messageText,
+      ctx.session.chainId || undefined,
+      ctx.session.contractAddress || undefined
     );
-  } else {
+
+    // Clear typing indicator interval
+    clearInterval(typingInterval);
+
+    if (response.success && response.data) {
+      // Update session ID if it changed
+      if (
+        response.data.sessionId &&
+        response.data.sessionId !== ctx.session.sessionId
+      ) {
+        ctx.session.sessionId = response.data.sessionId;
+      }
+
+      // Send the bot response
+      await ctx.reply(
+        response.data.botMessage.botMessage || 'No response from the bot.'
+      );
+    } else {
+      await ctx.reply(
+        '❌ Failed to get a response.\n' +
+          `Error: ${response.error || 'Unknown error'}`
+      );
+    }
+  } catch (error) {
+    // Clear typing indicator interval in case of error
+    clearInterval(typingInterval);
+
     await ctx.reply(
-      '❌ Failed to get a response.\n' +
-        `Error: ${response.error || 'Unknown error'}`
+      '❌ An error occurred while processing your message.\n' +
+        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }
