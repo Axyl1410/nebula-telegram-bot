@@ -85,7 +85,8 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
 
       // Send the bot response
       await ctx.reply(
-        response.data.botMessage.botMessage || 'No response from the bot.'
+        response.data.botMessage.botMessage || 'No response from the bot.',
+        { parse_mode: 'MarkdownV2' }
       );
     } else {
       await ctx.reply(
