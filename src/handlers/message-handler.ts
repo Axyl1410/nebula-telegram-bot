@@ -4,6 +4,7 @@ import {
   handleChainIdInput,
   handleContractAddressInput,
 } from './contract-handler';
+import { escapeMarkdown } from '../utils/helpers';
 
 export async function handleMessage(ctx: SessionContext) {
   if (!ctx.message || !('text' in ctx.message)) {
@@ -42,8 +43,11 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
         response.data.sessionId || response.data.conversation.sessionId;
     } else {
       await ctx.reply(
-        '❌ Failed to create a new session. Please try /start again.\n' +
-          `Error: ${response.error || 'Unknown error'}`
+        escapeMarkdown(
+          '❌ Failed to create a new session. Please try /start again.\n' +
+            `Error: ${response.error || 'Unknown error'}`
+        ),
+        { parse_mode: 'MarkdownV2' }
       );
       return;
     }
@@ -83,15 +87,17 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
         ctx.session.sessionId = response.data.sessionId;
       }
 
-      // Send the bot response
-      await ctx.reply(
-        response.data.botMessage.botMessage || 'No response from the bot.',
-        { parse_mode: 'MarkdownV2' }
-      );
+      const botMessage =
+        response.data.botMessage.botMessage || 'No response from the bot.';
+
+      await ctx.reply(escapeMarkdown(botMessage), { parse_mode: 'MarkdownV2' });
     } else {
       await ctx.reply(
-        '❌ Failed to get a response.\n' +
-          `Error: ${response.error || 'Unknown error'}`
+        escapeMarkdown(
+          '❌ Failed to get a response.\n' +
+            `Error: ${response.error || 'Unknown error'}`
+        ),
+        { parse_mode: 'MarkdownV2' }
       );
     }
   } catch (error) {
@@ -99,8 +105,11 @@ async function handleChatMessage(ctx: SessionContext, messageText: string) {
     clearInterval(typingInterval);
 
     await ctx.reply(
-      '❌ An error occurred while processing your message.\n' +
-        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      escapeMarkdown(
+        '❌ An error occurred while processing your message.\n' +
+          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      ),
+      { parse_mode: 'MarkdownV2' }
     );
   }
 }

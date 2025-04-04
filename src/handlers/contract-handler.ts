@@ -1,4 +1,5 @@
 import { SessionContext } from '../types';
+import { escapeMarkdown } from '../utils/helpers';
 
 export async function handleContractCommand(ctx: SessionContext) {
   // Check if the user is authenticated
@@ -89,11 +90,11 @@ export async function handleChainIdInput(
       ctx.session.sessionId = response.data.sessionId;
     }
 
+    const botMessage =
+      response.data.botMessage.botMessage || 'No response from the bot.';
+
     // Send the contract details
-    await ctx.reply(
-      response.data.botMessage.botMessage || 'Contract details retrieved.',
-      { parse_mode: 'MarkdownV2' }
-    );
+    await ctx.reply(escapeMarkdown(botMessage), { parse_mode: 'MarkdownV2' });
   } else {
     await ctx.reply(
       '❌ Failed to fetch contract details.\n' +
