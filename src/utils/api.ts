@@ -8,16 +8,18 @@ dotenv.config();
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000/api';
 const NEBULA_SECRET_KEY = process.env.NEBULA_SECRET_KEY;
 
-if (!NEBULA_SECRET_KEY) {
-  throw new Error('SECRET_KEY is not defined');
-}
-
 // Generic API request function
 async function apiRequest<T>(
   endpoint: string,
   method: string,
   data?: any
 ): Promise<ApiResponse<T>> {
+  if (!NEBULA_SECRET_KEY) {
+    throw new Error(
+      'NEBULA_SECRET_KEY is not defined in environment variables'
+    );
+  }
+
   try {
     const response = await axios({
       method,
