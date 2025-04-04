@@ -91,7 +91,8 @@ export async function handleChainIdInput(
 
     // Send the contract details
     await ctx.reply(
-      response.data.botMessage.botMessage || 'Contract details retrieved.'
+      response.data.botMessage.botMessage || 'Contract details retrieved.',
+      { parse_mode: 'MarkdownV2' }
     );
   } else {
     await ctx.reply(

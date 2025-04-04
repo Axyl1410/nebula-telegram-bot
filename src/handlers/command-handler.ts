@@ -34,9 +34,10 @@ export async function handleStartCommand(ctx: SessionContext) {
       response.data.sessionId || response.data.conversation.sessionId;
 
     await ctx.reply(
-      `👋 Welcome to Nebula Telegram Bot!\n\n` +
+      `*👋 Welcome to Nebula Telegram Bot!*\n\n` +
         `I'm your assistant for blockchain contract exploration. Your session has been initialized successfully.\n\n` +
-        helpMessage
+        helpMessage,
+      { parse_mode: 'MarkdownV2' }
     );
   } else {
     await ctx.reply(
