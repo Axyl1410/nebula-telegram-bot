@@ -45,7 +45,3 @@ export async function handleStartCommand(ctx: SessionContext) {
     );
   }
 }
-
-export async function handleHelpCommand(ctx: SessionContext) {
-  await ctx.reply(helpMessage);
-}
