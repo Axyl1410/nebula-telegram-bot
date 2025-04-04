@@ -1,7 +1,6 @@
 import { SessionContext } from '../types';
 import { createNewSession } from '../utils/api';
 import { helpMessage } from '../utils/constants';
-import { escapeMarkdown } from '../utils/helpers';
 
 export async function handleStartCommand(ctx: SessionContext) {
   // Reset the session
@@ -35,12 +34,9 @@ export async function handleStartCommand(ctx: SessionContext) {
       response.data.sessionId || response.data.conversation.sessionId;
 
     await ctx.reply(
-      escapeMarkdown(
-        `*👋 Welcome to Nebula Telegram Bot!*\n\n` +
-          `I'm your assistant for blockchain contract exploration. Your session has been initialized successfully.\n\n` +
-          helpMessage
-      ),
-      { parse_mode: 'MarkdownV2' }
+      `👋 Welcome to Nebula Telegram Bot!\n\n` +
+        `I'm your assistant for blockchain contract exploration. Your session has been initialized successfully.\n\n` +
+        helpMessage
     );
   } else {
     await ctx.reply(

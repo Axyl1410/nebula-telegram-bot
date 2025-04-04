@@ -7,7 +7,6 @@ import { handleContractCommand } from './handlers/contract-handler';
 import { handleMessage } from './handlers/message-handler';
 import { UserSession } from './types';
 import connectToDatabase from './utils/db';
-import { escapeMarkdown } from './utils/helpers';
 
 // Load environment variables
 dotenv.config();
@@ -58,15 +57,12 @@ bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
 bot.help((ctx) => {
   ctx.reply(
-    escapeMarkdown(
-      '*Available commands:*\n' +
-        '/start - Start or reset the bot\n' +
-        '/help - Show this help message\n' +
-        '/contract - Set contract context for chain analysis\n\n' +
-        'You can also send any text to chat with the bot.\n\n' +
-        'Note: When you set a contract context, all subsequent questions will be answered in relation to that contract.'
-    ),
-    { parse_mode: 'MarkdownV2' }
+    'Available commands:\n' +
+      '/start - Start or reset the bot\n' +
+      '/help - Show this help message\n' +
+      '/contract - Set contract context for chain analysis\n\n' +
+      'You can also send any text to chat with the bot.\n\n' +
+      'Note: When you set a contract context, all subsequent questions will be answered in relation to that contract.'
   );
 });
 
