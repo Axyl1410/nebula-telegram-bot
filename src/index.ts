@@ -78,11 +78,32 @@ async function ensureDatabaseConnection() {
 
 // Export the webhook handler for Vercel
 export default async function handler(req: any, res: any) {
-  // Ensure database connection
   await ensureDatabaseConnection();
 
-  // Handle webhook
-  return bot.handleUpdate(req.body, res);
+  // Only accept POST requests
+  if (req.method !== 'POST') {
+    res.status(405).send('Method Not Allowed');
+    return;
+  }
+
+  // Parse body if necessary (Vercel may provide it as a string)
+  let update = req.body;
+  if (typeof update === 'string') {
+    try {
+      update = JSON.parse(update);
+    } catch (e) {
+      res.status(400).send('Invalid JSON');
+      return;
+    }
+  }
+
+  // Defensive: check for update_id
+  if (!update || typeof update.update_id === 'undefined') {
+    res.status(400).send('Invalid Telegram update');
+    return;
+  }
+
+  await bot.handleUpdate(update, res);
 }
 
 // For local development, you can still use polling
