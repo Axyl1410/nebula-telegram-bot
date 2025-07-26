@@ -17,6 +17,7 @@ if (!BOT_TOKEN) {
   console.error('TELEGRAM_BOT_TOKEN is not defined in environment variables');
   process.exit(1);
 }
+
 // Create bot instance
 interface MyContext extends Context<Update> {
   session: UserSession;
@@ -42,16 +43,6 @@ bot.use((ctx, next) => {
   return next();
 });
 
-// Connect to MongoDB
-connectToDatabase()
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB:', err);
-    process.exit(1);
-  });
-
 // Register command handlers
 bot.command('start', handleStartCommand);
 bot.command('contract', handleContractCommand);
@@ -69,16 +60,54 @@ bot.help((ctx) => {
 // Handle incoming messages
 bot.on(message('text'), handleMessage);
 
-// Start the bot
-bot
-  .launch()
-  .then(() => {
-    console.log('Bot started successfully');
-  })
-  .catch((err) => {
-    console.error('Failed to start bot:', err);
-  });
+// Connect to MongoDB on cold start
+let dbConnected = false;
 
-// Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+async function ensureDatabaseConnection() {
+  if (!dbConnected) {
+    try {
+      await connectToDatabase();
+      console.log('Connected to MongoDB');
+      dbConnected = true;
+    } catch (err) {
+      console.error('Failed to connect to MongoDB:', err);
+      throw err;
+    }
+  }
+}
+
+// Export the webhook handler for Vercel
+export default async function handler(req: any, res: any) {
+  // Ensure database connection
+  await ensureDatabaseConnection();
+
+  // Handle webhook
+  return bot.handleUpdate(req.body, res);
+}
+
+// For local development, you can still use polling
+if (process.env.NODE_ENV !== 'production') {
+  // Connect to MongoDB for local development
+  connectToDatabase()
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
+    .catch((err) => {
+      console.error('Failed to connect to MongoDB:', err);
+      process.exit(1);
+    });
+
+  // Start the bot in polling mode for local development
+  bot
+    .launch()
+    .then(() => {
+      console.log('Bot started successfully in polling mode');
+    })
+    .catch((err) => {
+      console.error('Failed to start bot:', err);
+    });
+
+  // Enable graceful stop
+  process.once('SIGINT', () => bot.stop('SIGINT'));
+  process.once('SIGTERM', () => bot.stop('SIGTERM'));
+}
