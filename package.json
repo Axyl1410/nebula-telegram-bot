@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "telegraf": "^4.4.2",
-    "axios": "^1.6.7",
+    "axios": "^1.12.0",
     "dotenv": "^16.4.1",
     "mongoose": "^8.1.1"
   }
